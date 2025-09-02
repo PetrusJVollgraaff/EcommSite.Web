@@ -1,14 +1,23 @@
-.NET 9 Blazor Web App e-commerce
+# .NET 9 Blazor Web App e-commerce
 
-Required Packages
+A simple **.NET 9 Blazor Web App** with **SQLite + EF Core**, built as a demo e-commerce site.
 
-dotnet add package Microsoft.EntityFrameworkCore.Sqlite
-dotnet add package Microsoft.EntityFrameworkCore.Design
-dotnet tool install --global dotnet-ef
+## Features
 
-Migrations
-dotnet ef migrations add InitialCreate
+- Browse products
+- Add to cart
+- Checkout (saves orders in SQLite)
+- EF Core migrations
+
+### Run Locally
+
+```bash
+# restore
+dotnet restore
+
+# apply migrations
 dotnet ef database update
 
-Run the Project
+# run
 dotnet watch
+```
