@@ -1,0 +1,48 @@
+@page "/products"
+@using EcommSite.Web.Data
+@using EcommSite.Web.Data.Entities
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext Db
+@inject EcommSite.Web.Services.CartService Cart
+
+<PageTitle>Products</PageTitle>
+
+<h1 class="mb-3">Products</h1>
+
+@if (_products is null)
+{
+    <p>Loading…</p>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-3 g-3">
+        @foreach (var p in _products)
+        {
+            <div class="col">
+                <div class="card h-100">
+                    <img class="card-img-top" src="@p.ImageUrl" alt="@p.Name" />
+                    <div class="card-body">
+                        <h5 class="card-title">@p.Name</h5>
+                        <p class="card-text">@p.Description</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>@p.Price.ToString("C")</strong>
+                            <button class="btn btn-primary" @onclick="() => Add(p)">Add to cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<Product>? _products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // simple load (no tracking)
+        _products = await Task.Run(() => Db.Products.AsNoTracking().OrderBy(p => p.Name).ToList());
+    }
+
+    void Add(Product p) => Cart.Add(p);
+}

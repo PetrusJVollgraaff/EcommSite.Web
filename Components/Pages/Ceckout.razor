@@ -1,0 +1,53 @@
+@page "/checkout"
+@using EcommSite.Web.Data
+@using EcommSite.Web.Data.Entities
+@using EcommSite.Web.Services
+
+@inject AppDbContext Db
+@inject CartService Cart
+@inject NavigationManager Nav
+
+<PageTitle>Checkout</PageTitle>
+
+<h1>Checkout</h1>
+
+@if (!_placed)
+{
+    <p> Click "Place Order" to save your order to the database</p>
+    <button class="btn btn-primary" @onclick="PlaceOrder" disabled="@(!Cart.Items.Any())" type="button">Place Order</button>
+}
+else
+{
+    <div class="alert alert-success">
+        <strong>Order placed!</strong> Your order ID is <code>@_orderId</code>
+    </div>
+    <a class="btn btn-link" href="/products">Continue shopping</a>
+}
+
+@code {
+    private bool _placed;
+    private int _orderId;
+
+    async Task PlaceOrder()
+    {
+        if (!Cart.Items.Any()) return;
+
+        var order = new Order
+        {
+            Items = Cart.Items.Select(i => new OrderItem
+            {
+                ProductId = i.Product.Id,
+                Quantity = i.Quantity,
+                UnitPrice = i.Product.Price
+            }).ToList()
+        };
+
+        Db.Orders.Add(order);
+        await Db.SaveChangesAsync();
+        _orderId = order.Id;
+
+        Cart.Clear();
+        _placed = true;
+        StateHasChanged();
+    }
+}
