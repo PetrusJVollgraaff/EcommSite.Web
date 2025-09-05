@@ -2,31 +2,43 @@
 @using EcommSite.Web.Data
 @using EcommSite.Web.Data.Entities
 @using Microsoft.EntityFrameworkCore
+
 @inject AppDbContext Db
-@inject EcommSite.Web.Services.CartService Cart
+@inject EcommSite.Web.Services.CartService Cartz
 
 <PageTitle>Products</PageTitle>
-
 <h1 class="mb-3">Products</h1>
 
 @if (_products is null)
 {
-    <p>Loading…</p>
+    <p>Loading...</p>
 }
 else
 {
     <div class="row row-cols-1 row-cols-md-3 g-3">
-        @foreach (var p in _products)
+        @foreach (var pp in _products)
         {
             <div class="col">
                 <div class="card h-100">
-                    <img class="card-img-top" src="@p.ImageUrl" alt="@p.Name" />
+                    <img class="card-img-top" src="@pp?.ImageUrl" alt="@pp?.Name">
                     <div class="card-body">
-                        <h5 class="card-title">@p.Name</h5>
-                        <p class="card-text">@p.Description</p>
+                        <h5 class="card-title">@pp?.Name</h5>
+                        <p>@pp?.Description</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <strong>@p.Price.ToString("C")</strong>
-                            <button class="btn btn-primary" @onclick="() => Add(p)">Add to cart</button>
+                            @if (pp!.OnSpecial)
+                            {
+                                <strong>@pp.SpecialPrice.ToString("C")</strong>
+                                <p>@pp.NormalPrice.ToString("C")</p>
+                            }
+                            else
+                            {
+                                <strong>@pp.NormalPrice.ToString("C")</strong>
+                            }
+
+
+                            <button type="button" class="btn btn-primary"
+                                @onclick="() => AddToCart(pp!, pp!.OnSpecial ? pp.SpecialPrice : pp.NormalPrice)">Add to
+                                cart</button>
                         </div>
                     </div>
                 </div>
@@ -36,13 +48,69 @@ else
 }
 
 @code {
-    private List<Product>? _products;
+    //private List<ProductsPrices>? _products;
+    private List<EcommSiteWeb.Web.Data.DTOs.ProductWithPrice>? _products;
 
     protected override async Task OnInitializedAsync()
     {
-        // simple load (no tracking)
-        _products = await Task.Run(() => Db.Products.AsNoTracking().OrderBy(p => p.Name).ToList());
+
+        // Raw SQL query with join
+        var sql = @"
+SELECT
+p.Id AS ProductId,
+p.Name,
+p.Description,
+p.ImageUrl,
+pr1.NormalPrice,
+IFNULL(pr2.SpecialYN, 0) AS OnSpecial,
+IFNULL(pr2.SpecialPrice, 0) AS SpecialPrice
+FROM Products p
+LEFT JOIN (
+SELECT
+pp.ProductId,
+pr.Value AS NormalPrice
+FROM Prices pr
+JOIN ProductsPrices pp ON pp.PriceId = pr.Id
+WHERE pr.DeleteYN=0 AND pr.SpecialYN = 0
+) pr1 ON pr1.ProductId = p.Id
+LEFT JOIN (
+SELECT
+pp.ProductId,
+pr.SpecialYN,
+pr.Value AS SpecialPrice
+FROM Prices pr
+JOIN ProductsPrices pp ON pr.Id = pp.PriceId
+WHERE pr.DeleteYN=0 AND pr.SpecialYN = 1
+AND (JulianDay('now') - JulianDay(pr.SpecialDateStart)) > 0
+AND (JulianDay(pr.SpecialDateEnd) - JulianDay('now')) > 0
+) pr2 ON pr2.ProductId = p.Id
+WHERE p.DeleteYN = 0
+ORDER BY p.Name;
+";
+
+        _products = await Db.Database.SqlQueryRaw<EcommSiteWeb.Web.Data.DTOs.ProductWithPrice>($"{sql}").ToListAsync();
+
+        /*_products = await Task.Run(() =>
+        Db.ProductsPrices
+        .Include(pp => pp.Product)
+        .Include(pp => pp.Price)
+        .Where(pp => !pp.DeleteYN && !(pp.Price!.DeleteYN))
+        .ToList()
+        );*/
+
     }
 
-    void Add(Product p) => Cart.Add(p);
+    void AddToCart(EcommSiteWeb.Web.Data.DTOs.ProductWithPrice product, decimal price)
+    {
+        var fakeProduct = new EcommSite.Web.Data.Entities.Product
+        {
+            Id = product.ProductId,
+            Name = product.Name,
+            Description = product.Description,
+            ImageUrl = product.ImageUrl
+        };
+
+        //Cartz.Add(product, 1, price);
+        Cartz.Add(fakeProduct, 1, price);
+    }
 }

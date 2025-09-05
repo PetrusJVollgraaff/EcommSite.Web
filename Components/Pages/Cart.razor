@@ -32,13 +32,14 @@ else
                 <tr>
                     <td>@i.Product.Name</td>
                     <td class="text-end">
-                        <input type="number" min="0" class="form-control" value="@i.Quantity"
+                        <input type="number" class="form-control" min="0" value="@i.Quantity"
                             @onchange="(e) => Cartz.UpdateQty(i.Product.Id, int.Parse(e.Value?.ToString()))"
-                            style="width:6rem" />
+                            style="width:6rem float" />
+
 
                     </td>
                     <td class="text-end">
-                        @((i.Product.Price * i.Quantity).ToString("C"))
+                        @((i.UnitPrice * i.Quantity).ToString("C"))
                     </td>
                     <td class="text-end">
                         <button type="button" class="btn btn-link" @onclick="() => Cartz.Remove(i.Product.Id)">Remove</button>
@@ -48,6 +49,7 @@ else
         </tbody>
         <tfoot>
             <tr>
+                <td></td>
                 <td colspan="text-end">
                     <strong>Total</strong>
                 </td>

@@ -23,7 +23,7 @@ namespace EcommSite.Web.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("PlacedAt")
+                    b.Property<DateTime>("PlaceAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -59,11 +59,53 @@ namespace EcommSite.Web.Migrations
                     b.ToTable("OrderItems");
                 });
 
+            modelBuilder.Entity("EcommSite.Web.Data.Entities.Price", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AddedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("DeleteYN")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("SpecialDateEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("SpecialDateStart")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("SpecialYN")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Prices");
+                });
+
             modelBuilder.Entity("EcommSite.Web.Data.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AddedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("DeleteYN")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
@@ -78,13 +120,39 @@ namespace EcommSite.Web.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("Price")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Id");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("EcommSite.Web.Data.Entities.ProductsPrices", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AddedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("DeleteYN")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PriceId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PriceId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductsPrices");
                 });
 
             modelBuilder.Entity("EcommSite.Web.Data.Entities.OrderItem", b =>
@@ -102,6 +170,23 @@ namespace EcommSite.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Order");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("EcommSite.Web.Data.Entities.ProductsPrices", b =>
+                {
+                    b.HasOne("EcommSite.Web.Data.Entities.Price", "Price")
+                        .WithMany()
+                        .HasForeignKey("PriceId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("EcommSite.Web.Data.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Price");
 
                     b.Navigation("Product");
                 });

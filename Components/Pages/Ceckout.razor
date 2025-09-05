@@ -13,15 +13,15 @@
 
 @if (!_placed)
 {
-    <p> Click "Place Order" to save your order to the database</p>
-    <button class="btn btn-primary" @onclick="PlaceOrder" disabled="@(!Cart.Items.Any())" type="button">Place Order</button>
+    <div></div>
 }
 else
 {
     <div class="alert alert-success">
-        <strong>Order placed!</strong> Your order ID is <code>@_orderId</code>
+        <strong>Order placed!</strong>
+        Your order ID is < code> @_orderId </ code>
     </div>
-    <a class="btn btn-link" href="/products">Continue shopping</a>
+    < a class="btn btn-link" href="/products"> Continue shopping </ a>
 }
 
 @code {
@@ -38,7 +38,7 @@ else
             {
                 ProductId = i.Product.Id,
                 Quantity = i.Quantity,
-                UnitPrice = i.Product.Price
+                UnitPrice = i.UnitPrice
             }).ToList()
         };
 

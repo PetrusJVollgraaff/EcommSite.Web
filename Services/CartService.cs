@@ -5,6 +5,8 @@ namespace EcommSite.Web.Services;
 public class CartItem
 {
     public Product Product { get; set; } = default!;
+
+    public decimal UnitPrice { get; set; }
     public int Quantity { get; set; } = 1;
 }
 
@@ -14,11 +16,20 @@ public class CartService
     public IReadOnlyList<CartItem> Items => _items.AsReadOnly();
     public event Action? OnChange;
 
-    public void Add(Product product, int qty = 1)
+    public void Add(Product product, int qty = 1, decimal? price = null)
     {
+        var p = price ?? 0m;
         var existing = _items.FirstOrDefault(i => i.Product.Id == product.Id);
-        if (existing is null) _items.Add(new CartItem { Product = product, Quantity = Math.Max(1, qty) });
-        else existing.Quantity += Math.Max(1, qty);
+
+        if (existing is null)
+        {
+            _items.Add(new CartItem { Product = product, Quantity = Math.Max(1, qty), UnitPrice = p });
+        }
+        else
+        {
+            existing.Quantity += Math.Max(1, qty);
+        }
+
         OnChange?.Invoke();
     }
 
@@ -43,5 +54,5 @@ public class CartService
         OnChange?.Invoke();
     }
 
-    public decimal Total => _items.Sum(i => i.Product.Price * i.Quantity);
+    public decimal Total => _items.Sum(item => item.UnitPrice * item.Quantity);
 }
